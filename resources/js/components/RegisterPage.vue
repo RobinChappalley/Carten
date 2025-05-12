@@ -113,12 +113,19 @@ export default {
                 
                 console.log('Données envoyées:', formData);
                 
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                console.log('CSRF Token trouvé:', csrfToken);
+                
+                if (!csrfToken) {
+                    throw new Error('Token CSRF non trouvé');
+                }
+
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                        'X-CSRF-TOKEN': csrfToken.content
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify(formData)
@@ -141,7 +148,11 @@ export default {
                 }
             } catch (error) {
                 console.error('Erreur complète:', error);
-                alert('Une erreur est survenue lors de la communication avec le serveur');
+                if (error.message === 'Token CSRF non trouvé') {
+                    alert('Erreur de sécurité : Token CSRF manquant. Veuillez recharger la page.');
+                } else {
+                    alert('Une erreur est survenue lors de la communication avec le serveur');
+                }
             }
         }
     }
